@@ -43,3 +43,5 @@ db/seeds/booklog*
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+/lib/tasks/*.txt
