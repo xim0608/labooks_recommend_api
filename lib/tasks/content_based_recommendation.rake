@@ -1,6 +1,6 @@
 namespace :content_based_recommendation do
-  desc '本のデータを分かち書きにする'
-  task :wakati => :environment do
+  desc '本の書籍名からtf-idfを算出する'
+  task :calculate_tf_idf => :environment do
     include Math
 
     stop_word = []
