@@ -165,16 +165,22 @@ namespace :content_based_recommend do
       end
     end
     sub_idf = word_count
-    p sub_idf
 
-    word_list.each_with_index do |_, i|
+    # word_list.each_with_index do |_, i|
+    #   idf_store = {}
+    #   all_count[i].each do |k, v|
+    #
+    #     idf_store[k] = Math.log(word_list.size / sub_idf[k].to_f)
+    #     p sub_idf[k]
+    #   end
+    #   merge_idf[i] = idf_store
+    # end
+    all_count.each do |book_id, keywords|
       idf_store = {}
-      all_count[i].each do |k, v|
-
-        idf_store[k] = Math.log(word_list.size / sub_idf[k].to_f)
-        p sub_idf[k]
+      keywords.each do |keyword, keyword_count|
+        idf_store[keyword] = Math.log(all_count.size / sub_idf[keyword].to_f)
       end
-      merge_idf[i] = idf_store
+      merge_idf[book_id] = idf_store
     end
 
     # p merge_idf
