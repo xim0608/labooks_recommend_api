@@ -4,6 +4,7 @@ class RecommendController < ApplicationController
 
   def show
     # render json:
+    return "I will be return recommend books"
   end
 
 end
