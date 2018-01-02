@@ -136,7 +136,7 @@ namespace :content_based_recommend do
       end
       tf_store[book_id] = counter
     end
-    p tf_store
+    # p tf_store
 
     # word_count = {}
     # word_list.each_with_index do |_, i|
@@ -156,10 +156,16 @@ namespace :content_based_recommend do
 
     word_count = {}
     all_count.each do |book_id, keywords|
-      keywords.each do |keyword|
-
+      keywords.each do |keyword, keyword_count|
+        unless word_count[keyword].present?
+          word_count[keyword] = 1
+        else
+          word_count[keyword] += 1
+        end
       end
     end
+    sub_idf = word_count
+    p sub_idf
 
     word_list.each_with_index do |_, i|
       idf_store = {}
