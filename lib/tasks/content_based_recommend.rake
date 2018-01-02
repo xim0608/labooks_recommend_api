@@ -148,5 +148,25 @@ namespace :content_based_recommend do
       print "#{Book.find(book_id).name}: "
       p keywords.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
+    save_object!(merge_tfidf, 'tfidf.data')
+  end
+
+  desc 'tf-idfを値としたベクトル(ユニーク単語数x冊数)を作成'
+  task :tf_idf_vector => :environment do
+    books_tfidf = load_hash('tfidf')
+
+    count_data = load_hash('count')
+    word_list = count_data[:word_list]
+    uniq_word_list = word_list.flatten!.uniq!
+    vector = Array.new(count_data[:all_count].keys.last+1).map{Array.new(uniq_word_list.size, 0)}
+    # vector[0]は空のベクトル(book_idは1から)
+    books_tfidf.each do |book_id, keywords|
+      keywords.each do |keyword, tf_idf|
+        uniq_word_list_index = uniq_word_list.index(keyword)
+        vector[book_id][uniq_word_list_index] = tf_idf
+      end
+    end
+    p vector
+    save_object!(vector, 'vector.data')
   end
 end
