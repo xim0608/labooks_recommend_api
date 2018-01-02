@@ -145,7 +145,6 @@ namespace :content_based_recommend do
     p merge_tfidf
     uniq_word_list = word_list.flatten!.uniq!
     merge_tfidf.each do |book_id, keywords|
-      # TODO: 本の元データとの照らし合わせ
       print "#{Book.find(book_id).name}: "
       p keywords.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
