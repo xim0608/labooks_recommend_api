@@ -25,27 +25,18 @@ namespace :content_based_recommend do
         stop_word << word.strip if word.present?
       end
     end
+    stop_word += ['版']
+    stop_word += [*1..10].map(&:to_s)
 
     mecab = Natto::MeCab.new
-    books = Book.take(10)
+    books = Book.all
 
     # 本ごとの分かち書きのリスト(index: book_id)
     word_list = []
 
-
     # tf = ある単語tがある文書に現れる回数 / ある文書中の全ての単語数
     # idf = log(比較する文書の総数N / ある単語が現れた文書数)
-
-    tf_store = {}
-    idf_store = {}
     all_count = {}
-    sub_tfstore = {}
-    tf_counter = {}
-    sub_idf = {}
-    merge_idf = {}
-    merge_tfidf = {}
-    tfidf = {}
-
 
     books.each do |book|
       # if book.description.present?
@@ -80,7 +71,6 @@ namespace :content_based_recommend do
     count_data = {all_count: all_count, word_list: word_list}
     save_object!(count_data, 'count.data')
   end
-
 
   desc '本の書籍名からtf-idfを算出する'
   task :calculate_tf_idf => :environment do
@@ -172,12 +162,13 @@ namespace :content_based_recommend do
   end
 
   desc '行列からレコメンドさせてみる'
-  task :calculate_recommend => :environment do
+  task :calculate_recommend, ['book_id'] => :environment do |task, args|
     require 'matrix'
-
+    book_id = args.book_id
     matrix = load_hash('matrix')[:matrix]
+    all_count = load_hash('count')[:all_count]
 
-    book = Book.first # id=1
+    book = Book.find(book_id)
     base_vec = Vector.elements(matrix[book.id])
 
     max_score = Array.new(3, {score: 0, index: 0})
@@ -195,8 +186,18 @@ namespace :content_based_recommend do
       score.each do |k, v|
         if k == :index
           p Book.find(v).name
+          p all_count[v]
         end
       end
     end
+  end
+
+  desc 'book_idからレコメンドさせる(計算初期化)'
+  task :fetch_recommend, ['book_id'] => :environment do |task, args|
+    book_id = args.book_id
+    Rake::Task['content_based_recommend:wakati'].execute
+    Rake::Task['content_based_recommend:calculate_tf_idf'].execute
+    Rake::Task['content_based_recommend:tf_idf_vector'].execute
+    Rake::Task['content_based_recommend:calculate_recommend'].execute(Rake::TaskArguments.new([:book_id], [book_id]))
   end
 end
