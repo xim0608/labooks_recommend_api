@@ -45,3 +45,4 @@ db/seeds/booklog*
 /config/master.key
 
 /lib/tasks/*.txt
+/*.data
