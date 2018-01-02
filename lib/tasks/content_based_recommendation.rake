@@ -2,6 +2,8 @@ namespace :content_based_recommendation do
   desc '本の書籍名からtf-idfを算出する'
   task :calculate_tf_idf => :environment do
     include Math
+    require 'natto'
+    require 'matrix'
 
     stop_word = []
     File.open("#{Rails.root}/lib/tasks/Japanese.txt") do |file|
@@ -47,7 +49,7 @@ namespace :content_based_recommendation do
       end
       word_list.append(wakatigaki)
     end
-    # p word_list
+    p word_list
 
     word_list.each_with_index do |book_words, i|
       # print(book_words)
@@ -122,10 +124,11 @@ namespace :content_based_recommendation do
       merge_tfidf[i] = tfidf
     end
 
+    # p word_list
     merge_tfidf.each do |book_id, v|
       # TODO: 本の元データとの照らし合わせ
-      print "#{Book.find(book_id + 1).name}: "
-      p v.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
+      # print "#{Book.find(book_id + 1).name}: "
+      # p v.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
 
   end
