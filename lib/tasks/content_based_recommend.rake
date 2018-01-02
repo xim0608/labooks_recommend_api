@@ -104,14 +104,6 @@ namespace :content_based_recommend do
       all_count = Marshal.load(file)
     end
 
-    # calculate words num in a document
-    # word_list.each_with_index do |words, i|
-    #   sum = 0
-    #   all_count[i].each do |k, v|
-    #     sum = sum + all_count[i][k]
-    #   end
-    #   sub_tfstore[i] = sum
-    # end
     all_count.each do |book_id, keywords|
       sum = 0
       keywords.each do |keyword, keyword_count|
@@ -119,16 +111,7 @@ namespace :content_based_recommend do
       end
       sub_tfstore[book_id] = sum
     end
-    # print(sub_tfstore)
 
-    # calculate tf value and set to tf_store
-    # word_list.each_with_index do |_, i|
-    #   counter = {}
-    #   all_count[i].each do |k, v|
-    #     counter[k] = all_count[i][k].to_f / sub_tfstore[i]
-    #   end
-    #   tf_store[i] = counter
-    # end
     all_count.each do |book_id, keywords|
       counter = {}
       keywords.each do |keyword, keyword_count|
@@ -136,23 +119,6 @@ namespace :content_based_recommend do
       end
       tf_store[book_id] = counter
     end
-    # p tf_store
-
-    # word_count = {}
-    # word_list.each_with_index do |_, i|
-    #   word_list[i].each do |word|
-    #     # print(word)
-    #     word_count[word] = 0 unless word_count[word].present?
-    #   end
-    #   all_count[i].each do |k, v|
-    #     print(k)
-    #     p all_count[i]
-    #     p word_count[k]
-    #     word_count[k] += 1
-    #   end
-    #   # p word_count
-    # end
-    # sub_idf = word_count
 
     word_count = {}
     all_count.each do |book_id, keywords|
@@ -166,15 +132,6 @@ namespace :content_based_recommend do
     end
     sub_idf = word_count
 
-    # word_list.each_with_index do |_, i|
-    #   idf_store = {}
-    #   all_count[i].each do |k, v|
-    #
-    #     idf_store[k] = Math.log(word_list.size / sub_idf[k].to_f)
-    #     p sub_idf[k]
-    #   end
-    #   merge_idf[i] = idf_store
-    # end
     all_count.each do |book_id, keywords|
       idf_store = {}
       keywords.each do |keyword, keyword_count|
@@ -183,25 +140,21 @@ namespace :content_based_recommend do
       merge_idf[book_id] = idf_store
     end
 
-    # p merge_idf
-    word_list.each_with_index do |_, i|
+    all_count.each do |book_id, keywords|
       tfidf = {}
-      all_count[i].each do |k, v|
-        # print(tf_store[i][word])
-        # print(merge_idf[i][word])
-        tfidf[k] = tf_store[i][k] * merge_idf[i][k]
+      keywords.each do |keyword, keyword_count|
+        tfidf[keyword] = tf_store[book_id][keyword] * merge_idf[book_id][keyword]
       end
-      merge_tfidf[i] = tfidf
+      merge_tfidf[book_id] = tfidf
     end
 
-    # p merge_tfidf
-    uniq_word_list = word_list.flatten!.uniq!
-    merge_tfidf.each do |book_id, v|
+    p merge_tfidf
+    # uniq_word_list = word_list.flatten!.uniq!
+    merge_tfidf.each do |book_id, keywords|
       # TODO: 本の元データとの照らし合わせ
-      # print "#{Book.find(book_id + 1).name}: "
-      # p v.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
+      print "#{Book.find(book_id).name}: "
+      p keywords.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
-    print(all_count)
-
+    # print(all_count)
   end
 end
