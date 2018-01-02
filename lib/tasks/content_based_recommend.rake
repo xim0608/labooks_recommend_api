@@ -1,8 +1,16 @@
 namespace :content_based_recommend do
-  def save_object(obj, name)
+  def save_object!(obj, name)
     File.open(name, 'wb') do |file|
       Marshal.dump(obj, file)
     end
+  end
+
+  def load_hash(name)
+    hash = {}
+    File.open("#{Rails.root}/#{name}.data", 'rb') do |file|
+      hash = Marshal.load(file)
+    end
+    return hash
   end
 
   desc '本の書籍名からtf-idfを算出する'
@@ -68,22 +76,9 @@ namespace :content_based_recommend do
       all_count[book.id] = word_count
     end
     p all_count
-    # p word_list
 
-    # word_list.each_with_index do |book_words, i|
-    #   word_count = {}
-    #   book_words.each do |word|
-    #     if word_count.has_key?(word)
-    #       all_count[i] = word_count[word]
-    #     else
-    #       word_count[word] = 0
-    #       all_count[i] = 0
-    #     end
-    #     word_count[word] += 1
-    #   end
-    #   all_count[i] = word_count
-    # end
-    save_object(all_count, 'word_list.data')
+    count_data = {all_count: all_count, word_list: word_list}
+    save_object!(count_data, 'count.data')
   end
 
 
@@ -99,10 +94,9 @@ namespace :content_based_recommend do
     merge_tfidf = {}
     tfidf = {}
 
-    all_count = {}
-    File.open("#{Rails.root}/word_list.data", 'rb') do |file|
-      all_count = Marshal.load(file)
-    end
+    count_data = load_hash('count')
+    all_count = count_data[:all_count]
+    word_list = count_data[:word_list]
 
     all_count.each do |book_id, keywords|
       sum = 0
@@ -149,12 +143,11 @@ namespace :content_based_recommend do
     end
 
     p merge_tfidf
-    # uniq_word_list = word_list.flatten!.uniq!
+    uniq_word_list = word_list.flatten!.uniq!
     merge_tfidf.each do |book_id, keywords|
       # TODO: 本の元データとの照らし合わせ
       print "#{Book.find(book_id).name}: "
       p keywords.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
-    # print(all_count)
   end
 end
