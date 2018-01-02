@@ -151,7 +151,7 @@ namespace :content_based_recommend do
     save_object!(merge_tfidf, 'tfidf.data')
   end
 
-  desc 'tf-idfを値としたベクトル(ユニーク単語数x冊数)を作成'
+  desc 'tf-idfを値とした行列(ユニーク単語数x冊数)を作成'
   task :tf_idf_vector => :environment do
     books_tfidf = load_hash('tfidf')
 
@@ -167,6 +167,36 @@ namespace :content_based_recommend do
       end
     end
     p vector
-    save_object!(vector, 'vector.data')
+    matrix = {matrix: vector}
+    save_object!(matrix, 'matrix.data')
+  end
+
+  desc '行列からレコメンドさせてみる'
+  task :calculate_recommend => :environment do
+    require 'matrix'
+
+    matrix = load_hash('matrix')[:matrix]
+
+    book = Book.first # id=1
+    base_vec = Vector.elements(matrix[book.id])
+
+    max_score = Array.new(3, {score: 0, index: 0})
+
+    matrix.each_with_index do |vector, index|
+      score = base_vec.inner_product(Vector.elements(vector)).fdiv(base_vec.norm * Vector.elements(vector).norm)
+      max_score.sort! {|a, b| a[:score] <=> b[:score]}
+      if max_score[0][:score] < score
+        max_score.shift
+        max_score.push({score: score, index: index})
+      end
+    end
+    p "Base: #{book.name}"
+    max_score.each do |score|
+      score.each do |k, v|
+        if k == :index
+          p Book.find(v).name
+        end
+      end
+    end
   end
 end
