@@ -176,6 +176,7 @@ namespace :content_based_recommend do
     matrix.each_with_index do |vector, index|
       score = base_vec.inner_product(Vector.elements(vector)).fdiv(base_vec.norm * Vector.elements(vector).norm)
       max_score.sort! {|a, b| a[:score] <=> b[:score]}
+      next if score >= 1.to_f
       if max_score[0][:score] < score
         max_score.shift
         max_score.push({score: score, index: index})
@@ -187,7 +188,10 @@ namespace :content_based_recommend do
         if k == :index
           p Book.find(v).name
           p all_count[v]
+        else
+          p "score: #{v}"
         end
+
       end
     end
   end
