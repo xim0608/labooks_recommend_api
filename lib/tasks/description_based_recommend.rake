@@ -1,6 +1,6 @@
 namespace :description_based_recommend do
   def save_object!(obj, name)
-    File.open("desc_#{name}", 'wb') do |file|
+    File.open(name, 'wb') do |file|
       Marshal.dump(obj, file)
     end
   end
@@ -14,7 +14,7 @@ namespace :description_based_recommend do
   end
 
   desc '本の書籍名と詳細を分かち書き'
-  task :wakati => :environment do
+  task wakati: :environment do
     include Math
     require 'natto'
     require 'matrix'
@@ -39,9 +39,11 @@ namespace :description_based_recommend do
 
     books.each do |book|
       if book.description.present?
-        sentence = book.name + ' ' + book.description
+        # sentence = book.name + ' ' + book.description
+        sentence = book.description
       else
-        sentence = book.name
+        # sentence = book.name
+        sentence = ''
       end
 
       wakatigaki = []
@@ -68,7 +70,7 @@ namespace :description_based_recommend do
     p all_count
 
     count_data = {all_count: all_count, word_list: word_list}
-    save_object!(count_data, 'count.data')
+    save_object!(count_data, 'desc_count.data')
   end
 
   desc '本の書籍名からtf-idfを算出する'
@@ -132,11 +134,11 @@ namespace :description_based_recommend do
       print "#{Book.find(book_id).name}: "
       p keywords.sort {|(k1, v1), (k2, v2)| v2 <=> v1}
     end
-    save_object!(merge_tfidf, 'tfidf.data')
+    save_object!(merge_tfidf, 'desc_tfidf.data')
   end
 
   desc 'tf-idfを値とした行列(ユニーク単語数x冊数)を作成'
-  task :tf_idf_vector => :environment do
+  task tf_idf_vector: :environment do
     books_tfidf = load_hash('tfidf')
 
     count_data = load_hash('count')
@@ -152,11 +154,11 @@ namespace :description_based_recommend do
     end
     p vector
     matrix = {matrix: vector}
-    save_object!(matrix, 'matrix.data')
+    save_object!(matrix, 'desc_matrix.data')
   end
 
   desc '行列を生成する'
-  task :generating_matrix do
+  task generating_matrix: :environment do
     Rake::Task['description_based_recommend:wakati'].execute
     Rake::Task['description_based_recommend:calculate_tf_idf'].execute
     Rake::Task['description_based_recommend:tf_idf_vector'].execute

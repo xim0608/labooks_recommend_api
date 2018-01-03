@@ -152,7 +152,7 @@ namespace :title_based_recommend do
   end
 
   desc '行列を生成する'
-  task :generating_matrix do
+  task generating_matrix: :environment do
     Rake::Task['title_based_recommend:wakati'].execute
     Rake::Task['title_based_recommend:calculate_tf_idf'].execute
     Rake::Task['title_based_recommend:tf_idf_vector'].execute

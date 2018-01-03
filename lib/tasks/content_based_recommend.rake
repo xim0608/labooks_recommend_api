@@ -10,7 +10,7 @@ namespace :content_based_recommend do
     # desc_all_count = load_hash('desc_count')[:all_count]
 
     book = Book.find(book_id)
-    threshold = 0.25
+    threshold = 0.35
     base_vec = Vector.elements(matrix[book.id])
     desc_base_vec = Vector.elements(desc_matrix[book.id])
 
@@ -29,6 +29,7 @@ namespace :content_based_recommend do
       score = desc_base_vec.inner_product(Vector.elements(vector)).fdiv(desc_base_vec.norm * Vector.elements(vector).norm)
       max_score.sort! {|a, b| a[:score] <=> b[:score]}
       next if score >= 1.to_f
+      next if max_score.map {|k| k[:index]}.include?(index)
       if max_score[0][:score] < score
         max_score.shift
         max_score.push({score: score, index: index, type: 'description'})
@@ -43,7 +44,7 @@ namespace :content_based_recommend do
         elsif k == :score
           p "score: #{v}"
         else
-          p type
+          p v
           p '=================='
         end
       end
@@ -53,8 +54,8 @@ namespace :content_based_recommend do
   desc 'book_idからレコメンドさせる(計算初期化)'
   task :fetch_recommend, ['book_id'] => :environment do |task, args|
     book_id = args.book_id
-    Rake::Task['title_based_recommend:generating_matrix'].execute
-    Rake::Task['description_based_recommend:generating_matrix'].execute
+    # Rake::Task['title_based_recommend:generating_matrix'].execute
+    # Rake::Task['description_based_recommend:generating_matrix'].execute
     Rake::Task['content_based_recommend:calculate_recommend'].execute(Rake::TaskArguments.new([:book_id], [book_id]))
   end
 end
