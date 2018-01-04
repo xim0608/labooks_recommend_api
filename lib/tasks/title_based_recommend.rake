@@ -151,6 +151,30 @@ namespace :title_based_recommend do
     save_object!(matrix, 'matrix.data')
   end
 
+  desc 'tf-idfを値とした疎行列の要素を抽出'
+  task tf_idf_sparse_matrix: :environment do
+    books_tfidf = load_hash('tfidf')
+
+    count_data = load_hash('count')
+    word_list = count_data[:word_list]
+    uniq_word_list = word_list.flatten!.uniq!
+    vector = Array.new(count_data[:all_count].keys.last + 1)
+    # vector[0]は空のベクトル(book_idは1から)
+    books_tfidf.each do |book_id, keywords|
+      index = []
+      value = []
+      keywords.each do |keyword, tf_idf|
+        uniq_word_list_index = uniq_word_list.index(keyword)
+        index << uniq_word_list_index
+        value << tf_idf
+      end
+      vector[book_id] = [index, value]
+    end
+    p vector
+    matrix = {matrix: vector}
+    save_object!(matrix, 'sparse_matrix.data')
+  end
+
   desc '行列を生成する'
   task generating_matrix: :environment do
     Rake::Task['title_based_recommend:wakati'].execute

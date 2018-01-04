@@ -144,7 +144,7 @@ namespace :description_based_recommend do
     count_data = load_hash('count')
     word_list = count_data[:word_list]
     uniq_word_list = word_list.flatten!.uniq!
-    vector = Array.new(count_data[:all_count].keys.last+1).map{Array.new(uniq_word_list.size, 0)}
+    vector = Array.new(count_data[:all_count].keys.last + 1).map {Array.new(uniq_word_list.size, 0)}
     # vector[0]は空のベクトル(book_idは1から)
     books_tfidf.each do |book_id, keywords|
       keywords.each do |keyword, tf_idf|
@@ -155,6 +155,30 @@ namespace :description_based_recommend do
     p vector
     matrix = {matrix: vector}
     save_object!(matrix, 'desc_matrix.data')
+  end
+
+  desc 'tf-idfを値とした疎行列の要素を抽出'
+  task tf_idf_sparse_matrix: :environment do
+    books_tfidf = load_hash('desc_tfidf')
+
+    count_data = load_hash('count')
+    word_list = count_data[:word_list]
+    uniq_word_list = word_list.flatten!.uniq!
+    vector = Array.new(count_data[:all_count].keys.last + 1)
+    p vector
+    # vector[0]は空のベクトル(book_idは1から)
+    books_tfidf.each do |book_id, keywords|
+      index = []
+      value = []
+      keywords.each do |keyword, tf_idf|
+        uniq_word_list_index = uniq_word_list.index(keyword)
+        index << uniq_word_list_index
+        value << tf_idf
+      end
+      vector[book_id] = [index, value]
+    end
+    matrix = {matrix: vector}
+    save_object!(matrix, 'desc_sparse_matrix.data')
   end
 
   desc '行列を生成する'
